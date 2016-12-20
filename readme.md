@@ -43,13 +43,13 @@ at=info method=GET path=/ host=salty-earth-7125.herokuapp.com request_id=e2c79e8
 
 ### Language/App Server Agnostic
 
-Nginx-buildpack provides a command named `bin/start-nginx` this command takes another command as an argument. You must pass your app server's startup command to `start-nginx`.
+Nginx-buildpack provides a command named `bin/wrap-ip-nginx` this command takes another command as an argument. You must pass your app server's startup command to `wrap-ip-nginx`.
 
 For example, to get NGINX and Unicorn up and running:
 
 ```bash
 $ cat Procfile
-web: bin/start-nginx bundle exec unicorn -c config/unicorn.rb
+web: bin/wrap-ip-nginx bundle exec unicorn -c config/unicorn.rb
 ```
 
 ### Setting the Worker Processes
@@ -91,7 +91,7 @@ $ git commit -m 'Add multi-buildpack'
 ```
 Update Procfile:
 ```
-web: bin/start-nginx bundle exec unicorn -c config/unicorn.rb
+web: bin/wrap-ip-nginx bundle exec unicorn -c config/unicorn.rb
 ```
 ```bash
 $ git add Procfile
@@ -150,7 +150,7 @@ $ bundle install
 ```
 Create Procfile
 ```
-web: bin/start-nginx bundle exec unicorn -c config/unicorn.rb
+web: bin/wrap-ip-nginx bundle exec unicorn -c config/unicorn.rb
 ```
 Create & Push Heroku App:
 ```bash

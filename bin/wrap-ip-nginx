@@ -31,7 +31,7 @@ echo 'buildpack=nginx at=logs-initialized'
 #Start App Server
 (
   #Take the command passed to this bin and start it.
-  #E.g. bin/start-nginx bundle exec unicorn -c config/unicorn.rb
+  #E.g. bin/wrap-ip-nginx bundle exec unicorn -c config/unicorn.rb
         COMMAND=${@:$n}
   echo "buildpack=nginx at=start-app cmd=$COMMAND"
   $COMMAND

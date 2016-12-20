@@ -11,8 +11,8 @@ mkdir -p "$BUILD_DIR/bin/"
 cp "bin/nginx-$STACK" "$BUILD_DIR/bin/nginx"
 nginx_version=$(./bin/nginx-$STACK -V 2>&1 | head -1 | awk '{ print $NF }')
 echo "-----> nginx-port-restrictor: Installed ${nginx_version} to app/bin"
-cp bin/start-nginx "$BUILD_DIR/bin/"
-echo '-----> nginx-port-restrictor: Added start-nginx to app/bin'
+cp bin/wrap-ip-nginx "$BUILD_DIR/bin/"
+echo '-----> nginx-port-restrictor: Added wrap-ip-nginx to app/bin'
 
 mkdir -p "$BUILD_DIR/config"
 
@@ -23,9 +23,9 @@ cp config/nginx.conf.erb "$BUILD_DIR/config/"
 echo '-----> nginx-port-restrictor: Default config copied to app/config.'
 
 
-echo '-----> nginx-port-restrictor: Injecting start-nginx into Procfile'
-cp $BUILD_DIR/Procfile $BUILD_DIR/Procfile.old
-echo `ruby -v`
+echo '-----> nginx-port-restrictor: Injecting wrap-ip-nginx into Procfile'
+cp $BUILD_DIR/Procfile $BUILD_DIR/Procfile.before-ip-nginx
+ruby -e "File.write('Procfile', File.read('Procfile').gsub('web: ', 'web: wrap-ip-nginx '))"
 
 
 exit 0
