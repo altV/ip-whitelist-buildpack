@@ -25,7 +25,7 @@ echo '-----> nginx-port-restrictor: Default config copied to app/config.'
 
 echo '-----> nginx-port-restrictor: Injecting start-nginx into Procfile'
 cp $BUILD_DIR/Procfile $BUILD_DIR/Procfile.old
-mv $BUILD_DIR/Procfile $BUILD_DIR/Procfile.old
+echo `ruby -v`
 
 
 exit 0
