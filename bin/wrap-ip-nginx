@@ -26,16 +26,18 @@ run-nginx() {
     mkfifo "$psmgr"
 
     # Start app.
-    app-start SIGTERM "$@"
+
+    echo Port is $PORT
+    PORT=$ORIG_APP_PORT app-start SIGTERM "$@"
     pid=$!
 
     # Wait for app to start.
     if is-enabled "$NGINX_WAIT_ENABLED"; then
-        while [[ ! -e "$NGINX_WAIT_FILE" ]]; do
-            at app-waiting
-            sleep 1
-        done
-        at app-initialized
+      while ! [[ $(lsof -i :$ORIG_APP_PORT) ]]; do
+        at app-waiting
+        sleep 1
+      done
+      at app-initialized
     fi
 
     # Create logs dir. NGINX insists on creating logs/error.log even
@@ -90,7 +92,9 @@ app-start() {
         # Start child in the background. This is before the trap because
         # the app needs to be able to receive when the dyno broadcasts
         # SIGTERM on shutdown.
-        "$@" &
+        # "$@" &
+        echo Port in app-start is now $PORT
+        eval $(cat Procfile.before-ip-nginx | grep "^web: " | cut -c 6-) &
 
         # Translate SIGHUP/SIGTERM to the appropriate signal to stop the child
         # (probably SIGTERM in this case). Since this doesn't exit, it won't
@@ -142,21 +146,20 @@ aux-start() {
 }
 
 set-vars() {
+    if [[ $PORT == 7777 ]]; then
+      ORIG_APP_PORT=7778
+    else
+      ORIG_APP_PORT=7777
+    fi
     : ${NGINX_ENABLED:=1}
     : ${NGINX_LISTEN:=$PORT}
-    : ${NGINX_SOCKET:=/tmp/nginx.socket}
-    : ${NGINX_WAIT_FILE:=$NGINX_SOCKET}
     : ${NGINX_WAIT_ENABLED:=1}
     : ${NGINX_WORKERS:=4}
     NGINX_GZIP_ENABLED=$(norm-enabled "${NGINX_GZIP_ENABLED:-1}")
     : ${NGINX_GZIP_PROXIED:=any}
     NGINX_GZIP_TYPES=$(expand-types "${NGINX_GZIP_TYPES:-plain css javascript json xml atom+xml rss+xml}")
 
-    if [[ $NGINX_SOCKET == /* ]]; then
-        NGINX_SOCKET=unix:$NGINX_SOCKET
-    fi
-
-    export ${!NGINX_*} PORT
+    export ${!NGINX_*} PORT ORIG_APP_PORT
 }
 
 expand-types() {
@@ -175,7 +178,7 @@ expand-types() {
 }
 
 at() {
-    echo "buildpack=nginx at=$*"
+    echo "buildpack=whitelist-ip-nginx at=$*"
 }
 
 is-enabled() {

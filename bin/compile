@@ -24,22 +24,32 @@ main() {
     build-lua
 
     declare cached_version
-    # if ! is-enabled "$NGINX_FORCE_BUILD"; then
-    #     cached_version=$($CACHE_DIR/sbin/nginx -V 2>&1 | head -n1 | awk -F/ '{print $NF}') || true
-    # fi
+    if ! is-enabled "$NGINX_FORCE_BUILD"; then
+        cached_version=$($CACHE_DIR/sbin/nginx -V 2>&1 | head -n1 | awk -F/ '{print $NF}') || true
+    fi
 
-    # if [[ "$cached_version" != "$NGINX_VERSION" ]]; then
+    if [[ "$cached_version" != "$NGINX_VERSION" ]]; then
         announce "Building NGINX $NGINX_VERSION"
         build-nginx $CACHE_DIR
-    # else
-    #     announce "Using cached NGINX $NGINX_VERSION"
-    # fi
+    else
+        announce "Using cached NGINX $NGINX_VERSION"
+    fi
 
     install $CACHE_DIR/sbin/nginx bin/nginx
-    install $BUILDPACK_DIR/bin/start-nginx bin/start-nginx
+    install $BUILDPACK_DIR/bin/wrap-ip-nginx bin/wrap-ip-nginx
     cond-install $BUILDPACK_DIR/config/mime.types config/mime.types
     cond-install $BUILDPACK_DIR/config/nginx.conf.erb config/nginx.conf.erb
+    install config/ip_calc.lua vendor/nginx_lua/ip_calc.lua
+    install config/access.lua vendor/nginx_lua/access.lua
     install-nginx-lua
+
+    announce 'Injecting wrap-ip-nginx into Procfile'
+    cp $BUILD_DIR/Procfile $BUILD_DIR/Procfile.before-ip-nginx
+    pushd $BUILD_DIR
+    ruby -e "File.write('Procfile', File.read('Procfile').gsub('web: ', 'web: wrap-ip-nginx '))"
+    popd
+
+    install $BUILDPACK_DIR/bin/lsof bin/lsof
 }
 
 load-env() {
@@ -154,7 +164,7 @@ set-indent() {
 }
 
 announce() {
-    echo "-----> nginx-buildpack: $*"
+    echo "-----> whitelist-ip-nginx buildpack: $*"
 }
 
 is-enabled() {

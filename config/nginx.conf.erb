@@ -3,6 +3,9 @@ worker_processes <%= ENV['NGINX_WORKERS'] %>;
 pid /app/nginx.pid;
 error_log stderr;
 
+env IP_WHITELISTER_DEBUG_PASSTHROUGH;
+env IP_WHITELISTER_REDIS_DB_URL;
+
 events {
     use epoll;
     accept_mutex on;
@@ -29,19 +32,22 @@ http {
     client_max_body_size 10M;
 
     upstream app_server {
-        server <%= ENV['NGINX_SOCKET'] %> fail_timeout=0;
+        server 127.0.0.1:<%= ENV['ORIG_APP_PORT'] %> fail_timeout=0;
     }
 
     server {
         listen <%= ENV['NGINX_LISTEN'] %>;
         server_name _;
         keepalive_timeout 5;
+        resolver 8.8.8.8;
 
         location / {
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header Host $http_host;
             proxy_redirect off;
             proxy_pass http://app_server;
+
+            access_by_lua_file "vendor/nginx_lua/access.lua";
         }
     }
 

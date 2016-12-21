@@ -3,7 +3,7 @@ Heroku Buildpack: NGINX
 
 Nginx-buildpack vendors NGINX inside a dyno and connects NGINX to an app server via UNIX domain sockets.
 
-This buildpack forks [Ryan Smith's excellent buildpack](https://github.com/ryandotsmith/nginx-buildpack) and maintains his feature list:
+This buildpack based on [Ryan Smith's excellent buildpack](https://github.com/ryandotsmith/nginx-buildpack), Aaron Griffis changes, and Ace Hacker changes, and maintains their feature list:
 
 * Unified NGINX/App Server logs.
 * [L2met](https://github.com/ryandotsmith/l2met) friendly NGINX log format.
@@ -12,13 +12,11 @@ This buildpack forks [Ryan Smith's excellent buildpack](https://github.com/ryand
 * Language/App Server agnostic.
 * Customizable NGINX config.
 * Application coordinated dyno starts.
-
-However there are some significant differences:
-
-* NGINX is built during initial deployment, rather than using a prebuilt binary. The binary is cached between deploys.
 * NGINX logs are sent directly to stderr rather than to the filesystem. This results in faster log delivery to Heroku logplex, and doesn't gradually fill the filesystem.
 * Signals are handled gracefully by the wrapper script, allowing both the app and NGINX to stop properly on dyno shutdown.
-* `PORT` is overridden to refer to the UNIX domain socket, so the application can detect whether it's running under NGINX or directly. This is especially because NGINX can be enabled or disabled at run-time by toggling `NGINX_ENABLED`.
+
+Note that
+* `PORT` is set to 7777 (or 7778) for the child process of originall application
 
 Versions
 --------
@@ -53,13 +51,13 @@ at=info method=GET path=/ host=salty-earth-7125.herokuapp.com request_id=e2c79e8
 Language/App Server Agnostic
 ----------------------------
 
-Nginx-buildpack provides a command named `bin/start-nginx` this command takes another command as an argument. You must pass your app server's startup command to `start-nginx`.
+Nginx-buildpack provides a command named `bin/wrap-ip-nginx` this command takes another command as an argument. You must pass your app server's startup command to `wrap-ip-nginx`.
 
 For example, to get NGINX and Unicorn up and running:
 
 ```bash
 $ cat Procfile
-web: bin/start-nginx bundle exec unicorn -c config/unicorn.rb
+web: bin/wrap-ip-nginx bundle exec unicorn -c config/unicorn.rb
 ```
 
 ### Application/Dyno coordination
@@ -124,10 +122,10 @@ listen ENV['PORT']
 
 #### Update Procfile
 
-Prefix your server with `bin/start-nginx`.
+Prefix your server with `bin/wrap-ip-nginx`.
 
 ```
-web: bin/start-nginx bundle exec unicorn -c config/unicorn.rb
+web: bin/wrap-ip-nginx bundle exec unicorn -c config/unicorn.rb
 ```
 
 ### Python/Gunicorn
@@ -159,10 +157,10 @@ if bind.startswith('/'):
 
 #### Update Procfile
 
-Prefix your server with `bin/start-nginx`.
+Prefix your server with `bin/wrap-ip-nginx`.
 
 ```
-web: bin/start-nginx gunicorn -c config/gunicorn.py
+web: bin/wrap-ip-nginx gunicorn -c config/gunicorn.py
 ```
 
 License
