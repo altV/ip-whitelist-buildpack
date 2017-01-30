@@ -54,8 +54,9 @@ if not debug_passthrough then
     return ngx.exit(500)
 end
 
-ngx.log(ngx.ERR, "Denied UA '", ngx.var.http_user_agent, "' with this IP address: ", incoming_ip_str)
-red:lpush("denied_log", os.date("%Y-%m-%dT%H:%M:%SZ").." ||| "..incoming_ip_str.." ||| "..ngx.var.host.." ||| "..ngx.var.request_uri.." ||| "..ngx.var.http_user_agent)
+local http_user_agent = ngx.var.http_user_agent or ""
+ngx.log(ngx.ERR, "Denied UA '", http_user_agent, "' with this IP address: ", incoming_ip_str)
+red:lpush("denied_log", os.date("%Y-%m-%dT%H:%M:%SZ").." ||| "..incoming_ip_str.." ||| "..ngx.var.host.." ||| "..ngx.var.request_uri.." ||| "..http_user_agent)
 -- red:ltrim("denied_log", 0, 20000) -- not responsibility of buildpack, but companion application
 
 if debug_passthrough ~= 'yes' and (not os.getenv("IP_WHITELISTER_DEBUG_PASSTHROUGH")) then
