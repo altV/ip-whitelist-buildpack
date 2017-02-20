@@ -77,7 +77,7 @@ for k,host_url_regex in pairs(host_url_whitelist) do
   end
   if not err then
     if matched then
-      -- ngx.log(ngx.ERR, "Whitelisted by this host_url_regex: ", host_url_regex)
+      ngx.log(ngx.ERR, "Whitelisted by this host_url_regex: ", host_url_regex)
       return
     end
   end
@@ -88,13 +88,13 @@ end
 
 local debug_passthrough = false
 local debug_hosts, err = red:smembers('debug_hosts')
-if not debug_passthrough then
+if not debug_hosts then
     ngx.log(ngx.ERR, "failed to get redis set 'debug_hosts': ", err)
     return ngx.exit(500)
 end
 for k,debug_host in pairs(debug_hosts) do
   if debug_host == ngx.var.host then
-    debug_host = true
+    debug_passthrough = true
   end
 end
 
