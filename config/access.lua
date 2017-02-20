@@ -93,7 +93,9 @@ if not debug_passthrough then
     return ngx.exit(500)
 end
 for k,debug_host in pairs(debug_hosts) do
-  if debug_host == ngx.var.host then debug_host = true
+  if debug_host == ngx.var.host then
+    debug_host = true
+  end
 end
 
 
