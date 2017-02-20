@@ -104,7 +104,7 @@ ngx.log(ngx.ERR, "Denied UA '", http_user_agent, "' with this IP address: ", inc
 red:lpush("denied_log", os.date("%Y-%m-%dT%H:%M:%SZ").." ||| "..incoming_ip_str.." ||| "..ngx.var.host.." ||| "..ngx.var.request_uri.." ||| "..http_user_agent)
 -- red:ltrim("denied_log", 0, 20000) -- not responsibility of buildpack, but companion application
 
-if !debug_passthrough and (not os.getenv("IP_WHITELISTER_DEBUG_PASSTHROUGH")) then
+if not (debug_passthrough or os.getenv("IP_WHITELISTER_DEBUG_PASSTHROUGH")) then
   ngx.header["Content-Type"] = "text/html; charset=UTF-8"
   ngx.status = 403
   ngx.say("<html><body>Sorry, your IP address is not in the whitelist.".."<br>Please contact support team (or lkovnatskiy@aligntech.com) or add yourself to the whitelist.</body></html>")
