@@ -119,7 +119,7 @@ red:lpush("denied_log",   log_msg)
 red:publish("denied_log", log_msg)
 
 -- log service_times every 1/100 blocked request
-if 1 == math.random(1) then
+if 100 == math.random(100) then
   ngx.update_time()
   local time_elapsed = ngx.now() - time_started
   red:lpush("service_times", time_elapsed)
