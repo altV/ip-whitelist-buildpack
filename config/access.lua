@@ -1,3 +1,6 @@
+ngx.update_time()
+local time_started = ngx.now()
+
 local incoming_ip_str = ngx.var.http_x_forwarded_for
 if not incoming_ip_str then
   ngx.log(ngx.ERR, "Problem with Heroku router: failed to get http_x_forwarded_for")
@@ -6,6 +9,7 @@ end
 
 -- Plan is to
 -- connect to redis
+-- re-register this host every request
 -- pass requests based on IP
 -- pass requests based on host/url regexes
 -- check if it's debug_allowed instance
@@ -19,7 +23,7 @@ local red   = redis:new()
 
 red:set_timeout(1000) -- 1 second
 
-
+-- TODO: insert persistent connection pool
 
 local r_password, r_host, r_port = string.match(os.getenv("IP_WHITELISTER_REDIS_DB_URL"), "://.+:(.+)@(.+):(.+)");
 
@@ -34,6 +38,11 @@ if not ok then
   ngx.log(ngx.ERR, "failed to connect to redis: ", err)
   return ngx.exit(500)
 end
+
+
+-- re-register this host every request
+
+red:zadd('active_hosts', ngx.time(), ngx.var.host)
 
 
 -- pass requests based on IP
@@ -98,15 +107,26 @@ for k,debug_host in pairs(debug_hosts) do
   end
 end
 
-
 -- block or log the request since it's not passed
 
-local http_user_agent = ngx.var.http_user_agent or ""
-ngx.log(ngx.ERR, "Denied UA '", http_user_agent, "' with this IP address: ", incoming_ip_str)
-red:lpush("denied_log", os.date("%Y-%m-%dT%H:%M:%SZ").." ||| "..incoming_ip_str.." ||| "..ngx.var.host.." ||| "..ngx.var.request_uri.." ||| "..http_user_agent)
--- red:ltrim("denied_log", 0, 20000) -- not responsibility of buildpack, but companion application
+local was_debug_request = (debug_passthrough or os.getenv("IP_WHITELISTER_DEBUG_PASSTHROUGH"))
+local was_debug_request_str = if was_debug_request then "D" else "B" end
 
-if not (debug_passthrough or os.getenv("IP_WHITELISTER_DEBUG_PASSTHROUGH")) then
+local http_user_agent = ngx.var.http_user_agent or ""
+
+local log_msg = os.date("%Y-%m-%dT%H:%M:%SZ").." ||| "..incoming_ip_str.." ||| "..ngx.var.host.." ||| "..ngx.var.request_uri.." ||| "..http_user_agent.. " ||| "..was_debug_request_str
+red:lpush("denied_log",   log_msg)
+red:publish("denied_log", log_msg)
+
+-- log service_times every 1/100 blocked request
+if 1 == math.random(1) then
+  ngx.update_time()
+  local time_elapsed = ngx.now() - time_started
+  ngx.lpush("service_times", time_elapsed)
+end
+
+if not was_debug_request then
+  ngx.log(ngx.ERR, "Denied UA '", http_user_agent, "' with this IP address: ", incoming_ip_str)
   ngx.header["Content-Type"] = "text/html; charset=UTF-8"
   ngx.status = 403
   ngx.say("<html><body>Sorry, your IP address is not in the whitelist.".."<br>Please contact support team (or lkovnatskiy@aligntech.com) or add yourself to the whitelist.</body></html>")
