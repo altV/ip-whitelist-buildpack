@@ -122,7 +122,7 @@ red:publish("denied_log", log_msg)
 if 1 == math.random(1) then
   ngx.update_time()
   local time_elapsed = ngx.now() - time_started
-  ngx.lpush("service_times", time_elapsed)
+  red:lpush("service_times", time_elapsed)
 end
 
 if not was_debug_request then
