@@ -110,7 +110,7 @@ end
 -- block or log the request since it's not passed
 
 local was_debug_request = (debug_passthrough or os.getenv("IP_WHITELISTER_DEBUG_PASSTHROUGH"))
-local was_debug_request_str = if was_debug_request then "D" else "B" end
+local was_debug_request_str = was_debug_request and "D" or "B"
 
 local http_user_agent = ngx.var.http_user_agent or ""
 
