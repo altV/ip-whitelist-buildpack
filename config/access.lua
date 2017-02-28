@@ -1,11 +1,10 @@
 ngx.update_time()
 local time_started = ngx.now()
 
+ngx.log(ngx.ERR, "ngx.var.http_x_forwarded_for: ", ngx.var.http_x_forwarded_for)
+ngx.log(ngx.ERR, "ngx.var.remote_addr: ",          ngx.var.remote_addr)
+
 local incoming_ip_str = ngx.var.http_x_forwarded_for
-if not incoming_ip_str then
-  ngx.log(ngx.ERR, "Problem with Heroku router: failed to get http_x_forwarded_for")
-  return ngx.exit(500)
-end
 
 -- Plan is to
 -- connect to redis
@@ -86,7 +85,7 @@ for k,host_url_regex in pairs(host_url_whitelist) do
   end
   if not err then
     if matched then
-      ngx.log(ngx.ERR, "Whitelisted by this host_url_regex: ", host_url_regex)
+      -- ngx.log(ngx.ERR, "Whitelisted by this host_url_regex: ", host_url_regex)
       return
     end
   end
@@ -119,10 +118,10 @@ red:lpush("denied_log",   log_msg)
 red:publish("denied_log", log_msg)
 
 -- log service_times every 1/100 blocked request
-if 100 == math.random(100) then
+if 10 == math.random(10) then
   ngx.update_time()
   local time_elapsed = ngx.now() - time_started
-  red:lpush("service_times", time_elapsed)
+  red:lpush("service_times", (string.format("%.4f", time_elapsed).."-"..ngx.var.host))
 end
 
 if not was_debug_request then
