@@ -1,10 +1,11 @@
 ngx.update_time()
 local time_started = ngx.now()
 
-ngx.log(ngx.ERR, "ngx.var.http_x_forwarded_for: ", ngx.var.http_x_forwarded_for)
-ngx.log(ngx.ERR, "ngx.var.remote_addr: ",          ngx.var.remote_addr)
+-- ngx.log(ngx.ERR, "ngx.var.http_x_forwarded_for: ", ngx.var.http_x_forwarded_for)
+-- ngx.log(ngx.ERR, "ngx.var.remote_addr: ",          ngx.var.remote_addr)
 
-local incoming_ip_str = ngx.var.http_x_forwarded_for
+-- local incoming_ip_str = ngx.var.http_x_forwarded_for  -- now realip module autoconverts it
+local incoming_ip_str = ngx.var.remote_addr
 
 -- Plan is to
 -- connect to redis
