@@ -129,6 +129,6 @@ if not was_debug_request then
   ngx.log(ngx.ERR, "Denied UA '", http_user_agent, "' with this IP address: ", incoming_ip_str)
   ngx.header["Content-Type"] = "text/html; charset=UTF-8"
   ngx.status = 403
-  ngx.say("<html><body>Sorry, your IP address is not in the whitelist.".."<br>Please contact support team (or lkovnatskiy@aligntech.com) or add yourself to the whitelist.</body></html>")
+  ngx.say("<html><body>Sorry, your IP address is not in the whitelist.".."<br>Please contact support team (or lparvathaneni@aligntech.com or lkovnatskiy@aligntech.com) or add yourself to the whitelist.</body></html>")
   ngx.exit(403)
 end
