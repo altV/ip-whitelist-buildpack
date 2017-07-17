@@ -46,7 +46,7 @@ main() {
     announce 'Injecting wrap-ip-nginx into Procfile'
     cp $BUILD_DIR/Procfile $BUILD_DIR/Procfile.before-ip-nginx
     pushd $BUILD_DIR
-    ruby -e "File.write('Procfile', File.read('Procfile').gsub('web: ', 'web: wrap-ip-nginx '))"
+    ruby -e "File.write('Procfile', File.read('Procfile').gsub('web: ', 'web: bin/wrap-ip-nginx '))"
     popd
 
     install $BUILDPACK_DIR/bin/lsof bin/lsof
