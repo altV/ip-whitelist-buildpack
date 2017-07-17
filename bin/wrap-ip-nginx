@@ -33,7 +33,7 @@ run-nginx() {
 
     # Wait for app to start.
     if is-enabled "$NGINX_WAIT_ENABLED"; then
-      while ! [[ $(lsof -i :$ORIG_APP_PORT) ]]; do
+      while ! [[ $(/app/bin/lsof -i :$ORIG_APP_PORT) ]]; do
         at app-waiting
         sleep 1
       done
