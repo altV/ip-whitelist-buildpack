@@ -8,12 +8,12 @@ main() {
     BUILDPACK_DIR=$(readlink -f $(dirname $(type -P "$0"))/..)
     LUA_JIT_DIR=$BUILD_DIR/vendor/lua_jit
 
-    LUA_JIT_VERSION=2.0.4
-    NGINX_VERSION=1.8.0
+    LUA_JIT_VERSION=2.0.5
+    NGINX_VERSION=1.15.3
     NGINX_PCRE_VERSION=8.37
     NGINX_HEADERS_MORE_VERSION=0.261
     NGINX_DEVEL_KIT_VERSION=0.2.19
-    NGINX_LUA_VERSION=0.9.18
+    NGINX_LUA_VERSION=0.10.13
     RESTY_REDIS_VERSION=0.21
 
     set -eo pipefail
@@ -85,8 +85,8 @@ build-nginx() {
     declare nginx_install_dir=$1
     declare nginx_build_dir=/tmp/nginx-build
 
-    declare nginx_url=http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
-    declare pcre_url=http://downloads.sourceforge.net/project/pcre/pcre/$NGINX_PCRE_VERSION/pcre-$NGINX_PCRE_VERSION.tar.bz2
+    declare nginx_url=https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
+    declare pcre_url=https://downloads.sourceforge.net/project/pcre/pcre/$NGINX_PCRE_VERSION/pcre-$NGINX_PCRE_VERSION.tar.bz2
     declare headers_more_url=https://github.com/agentzh/headers-more-nginx-module/archive/v$NGINX_HEADERS_MORE_VERSION.tar.gz
     declare devel_kit_url=https://github.com/simpl/ngx_devel_kit/archive/v$NGINX_DEVEL_KIT_VERSION.tar.gz
     declare nginx_lua_url=https://github.com/openresty/lua-nginx-module/archive/v$NGINX_LUA_VERSION.tar.gz
@@ -103,8 +103,6 @@ build-nginx() {
         curl -#L $headers_more_url | tar xz
         curl -#L $devel_kit_url | tar xz
         curl -#L $nginx_lua_url | tar xz
-
-        patch -p1 < $BUILDPACK_DIR/nginx-$NGINX_VERSION-heroku.patch
 
         export LUAJIT_LIB=$LUA_JIT_DIR/lib
         export LUAJIT_INC=$LUA_JIT_DIR/include/luajit-2.0
